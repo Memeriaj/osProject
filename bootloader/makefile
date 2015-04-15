@@ -8,4 +8,4 @@ floppya.img : test.img
 	cp $< $@
 
 clean:
-	rm -f floppya.img
+	rm -f floppya.img bochsout.txt
