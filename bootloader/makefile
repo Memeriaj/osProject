@@ -3,7 +3,10 @@
 
 main : floppya.img
 
-# Portion 2 for Milestone 1
+# Portion 5 for Milestone 1
+
+
+# Portion 4 for Milestone 1
 floppya.img : bootload
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
