@@ -16,7 +16,7 @@ kernel_asm.o : kernel.asm
 	as86 $< -o $@
 
 kernel.o : kernel.c
-	bcc -ansi -c -o $@ $< #Make sure that bcc is installed
+	bcc -ansi -c -W -o $@ $< #Make sure that bcc is installed
 
 # Portion 4 for Milestone 1
 #floppya.img : bootload
