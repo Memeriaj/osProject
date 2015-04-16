@@ -1,4 +1,4 @@
-
+#Written by: Austin Fahsl, Alex Memering and Joel Shapiro
 .PHONY : clean bochsTest main
 
 main : bochsTest

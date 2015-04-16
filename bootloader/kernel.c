@@ -1,3 +1,4 @@
+/*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/
 int findAddress(int line, int pos);
 void writeStringToScreen(int line, int startPos, char* str);
 
