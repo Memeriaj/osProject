@@ -3,7 +3,6 @@
 
 main : bochsTest
 
-# Portion 6 for Milestone 1
 floppya.img : bootload kernel
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
@@ -15,24 +14,16 @@ kernel : kernel.o kernel_asm.o
 kernel_asm.o : kernel.asm
 	as86 $< -o $@
 
+#Make sure that bcc is installed
 kernel.o : kernel.c
-	bcc -ansi -c -W -o $@ $< #Make sure that bcc is installed
+	bcc -ansi -c -W -o $@ $<
 
-# Portion 4 for Milestone 1
-#floppya.img : bootload
-#	dd if=/dev/zero of=$@ bs=512 count=2880
-#	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
-
+#Make sure to have installed nasm
 bootload : bootload.asm
-	nasm $< #Make sure to have installed nasm
+	nasm $<
 
-# Portion 3 for Milestone 1
 bochsTest: opsys.bxrc floppya.img
 	bochs -f opsys.bxrc
-
-#floppya.img : test.img
-#	cp $< $@
-
 
 clean:
 	rm -f floppya.img bochsout.txt bootload *.o kernel

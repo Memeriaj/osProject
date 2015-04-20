@@ -3,7 +3,8 @@ int findAddress(int line, int pos);
 void writeStringToScreen(int line, int startPos, char* str);
 
 int main(){
-  writeStringToScreen(3, 2, "Hello World!");
+  //writeStringToScreen(3, 2, "Hello World!");
+  interrupt(0x10, 0xe*256+'Q', 0, 0, 0);
 
   while(1){}
   return 0;
