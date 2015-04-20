@@ -1,12 +1,20 @@
 /*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/
 void printString(char* message);
 void readString(char* store);
+void readSector(char* buffer, int sector);
+
+int mod(int a, int b);
+int div(int a, int b);
 
 int main(){
   char line[80];
   printString("Enter a line: \0");
   readString(line);
   printString(line);
+
+  char buffer[512];
+  readSector(buffer, 30);
+  printString(buffer);
 
   while(1){}
   return 0;
@@ -44,4 +52,32 @@ void readString(char* store){
   cur++;
   *(store+cur) = '\0';
   return;
+}
+
+void readSector(char* buffer, int sector){
+  int read = 2;
+  int sectorsToRead = 1;
+  int trackNumber = div(sector, 36);
+  int realativeSectorNumber = mod(sector, 18)+1;
+  int headNumber = mod(div(sector,18),2);
+  int deviceNumber = 0;
+  interrupt(0x13, read*256+sectorsToRead,
+    trackNumber*256+realativeSectorNumber,
+    headNumber*256+deviceNumber);
+  return;
+}
+
+int mod(int a, int b){
+  while(a >= b){
+    a = a-b;
+  }
+  return a;
+}
+
+int div(int a, int b){
+  int quotient = 0;
+  while((quotient+1)*b <= a){
+    quotient++;
+  }
+  return quotient;
 }
