@@ -2,6 +2,7 @@
 void printString(char* message);
 void readString(char* store);
 void readSector(char* buffer, int sector);
+void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
 int div(int a, int b);
@@ -16,6 +17,9 @@ int main(){
 
   readSector(buffer, 30);
   printString(buffer);
+
+  makeInterrupt21();
+  interrupt(0x21, 0, 0, 0, 0);
 
   while(1){}
   return 0;
@@ -85,4 +89,10 @@ int div(int a, int b){
     quotient++;
   }
   return quotient;
+}
+
+
+void handleInterrupt21(int ax, int bx, int cx, int dx){
+  printString("Hello World");
+  return;
 }
