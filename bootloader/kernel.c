@@ -19,7 +19,8 @@ int main(){
   printString(buffer);
 
   makeInterrupt21();
-  interrupt(0x21, 0, 0, 0, 0);
+  interrupt(0x21, 1, line, 0, 0);
+  interrupt(0x21, 0, line, 0, 0);
 
   while(1){}
   return 0;
@@ -42,6 +43,7 @@ void readString(char* store){
     cur++;
 
     if(*(store+cur) == 0x8 && cur > 0){
+      /* We might want to write a <space> to the location to blank it */
       cur-= 2;
     }
 
@@ -93,6 +95,19 @@ int div(int a, int b){
 
 
 void handleInterrupt21(int ax, int bx, int cx, int dx){
-  printString("Hello World");
+  switch(ax){
+    case 0x0: /*Print String*/
+      printString(bx);
+      break;
+    case 0x1: /*Read String*/
+      readString(bx);
+      break;
+    case 0x2: /*Read Sector*/
+      readSector(bx, cx);
+      break;
+    default:
+      printString("Interrupt21 got an ax that was undefined.");
+  }
+
   return;
 }
