@@ -7,7 +7,7 @@ floppya.img : bootload kernel
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
 	dd if=kernel of=$@ bs=512 conv=notrunc seek=3
-	dd if=message.txt of=floppya.img bs=512 count=1 seek=30 conv=notruc
+	dd if=message.txt of=floppya.img bs=512 count=1 seek=30 conv=notrunc
 
 kernel : kernel.o kernel_asm.o
 	ld86 -o $@ -d $^

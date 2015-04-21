@@ -8,11 +8,12 @@ int div(int a, int b);
 
 int main(){
   char line[80];
+  char buffer[512];
+
   printString("Enter a line: \0");
   readString(line);
   printString(line);
 
-  char buffer[512];
   readSector(buffer, 30);
   printString(buffer);
 
@@ -55,15 +56,19 @@ void readString(char* store){
 }
 
 void readSector(char* buffer, int sector){
+  int q;
+
   int read = 2;
   int sectorsToRead = 1;
   int trackNumber = div(sector, 36);
   int realativeSectorNumber = mod(sector, 18)+1;
   int headNumber = mod(div(sector,18),2);
   int deviceNumber = 0;
-  interrupt(0x13, read*256+sectorsToRead,
-    trackNumber*256+realativeSectorNumber,
-    headNumber*256+deviceNumber);
+
+  char* retrievedSector = interrupt(0x13, read*256+sectorsToRead,
+                                      buffer,
+                                      trackNumber*256+realativeSectorNumber,
+                                      headNumber*256+deviceNumber);
   return;
 }
 
