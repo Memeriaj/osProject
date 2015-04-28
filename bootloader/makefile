@@ -3,9 +3,11 @@
 
 main : bochsTest
 
-floppya.img : bootload kernel
+floppya.img : bootload kernel map.img dir.img
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
+	dd if=map.img of=$@ bs=512 conv=notrunc seek=1
+	dd if=dir.img of=$@ bs=512 conv=notrunc seek=2
 	dd if=kernel of=$@ bs=512 conv=notrunc seek=3
 	dd if=message.txt of=floppya.img bs=512 count=1 seek=30 conv=notrunc
 
