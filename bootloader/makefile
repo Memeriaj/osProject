@@ -5,6 +5,7 @@ main : bochsTest
 
 loadOtherFiles : floppya.img loadFile message.txt
 	./loadFile message.txt
+	./loadFile tstprg
 
 floppya.img : bootload kernel map.img dir.img
 	dd if=/dev/zero of=$@ bs=512 count=2880

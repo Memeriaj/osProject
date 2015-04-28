@@ -5,11 +5,13 @@
 #define FILESECTORLENGTH (FILEENTRYLENGTH - NAMELENGTH)
 #define FILLERSECTOR 0x00
 #define SECTORSIZE 512
+#define MAXFILESIZE FILESECTORLENGTH*SECTORSIZE
 
 void printString(char* message);
 void readString(char* store);
 void readSector(char* buffer, int sector);
 void readFile(char* name, char* buffer);
+void executeProgram(char* name, int segment);
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
@@ -18,11 +20,10 @@ int matchNames(char* first, char* second, int length);
 void loadFileSectors(char* buffer, char* dir);
 
 int main(){
-  char buffer[512];
   makeInterrupt21();
 
-  interrupt(0x21, 3, "messag\0", buffer, 0);
-  interrupt(0x21, 0, buffer, 0, 0);
+  interrupt(0x21, 4, "tstprg\0", 0x2000, 0);
+  printString("This shouldn't print\0");
 
   while(1);
   return 0;
@@ -146,6 +147,20 @@ void loadFileSectors(char* buffer, char* dir){
 
 
 
+void executeProgram(char* name, int segment){
+  char buffer[MAXFILESIZE];
+  int curLoadChar;
+
+  readFile(name, buffer);
+  for(curLoadChar=0; curLoadChar<MAXFILESIZE; curLoadChar++){
+    putInMemory(segment, curLoadChar, buffer[curLoadChar]);
+  }
+
+  launchProgram(segment);
+}
+
+
+
 void handleInterrupt21(int ax, int bx, int cx, int dx){
   switch(ax){
     case 0x0: /*Print String*/
@@ -159,6 +174,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       break;
     case 0x3: /*Read File*/
       readFile(bx, cx);
+      break;
+    case 0x4: /*Execute Program*/
+      executeProgram(bx, cx);
       break;
     default:
       printString("Interrupt21 got an ax that was undefined.");
