@@ -1,7 +1,10 @@
 #Written by: Austin Fahsl, Alex Memering and Joel Shapiro
-.PHONY : clean bochsTest main
+.PHONY : clean bochsTest main loadOtherFiles
 
 main : bochsTest
+
+loadOtherFiles : floppya.img loadFile message.txt
+	./loadFile message.txt
 
 floppya.img : bootload kernel map.img dir.img
 	dd if=/dev/zero of=$@ bs=512 count=2880
@@ -9,7 +12,10 @@ floppya.img : bootload kernel map.img dir.img
 	dd if=map.img of=$@ bs=512 conv=notrunc seek=1
 	dd if=dir.img of=$@ bs=512 conv=notrunc seek=2
 	dd if=kernel of=$@ bs=512 conv=notrunc seek=3
-	dd if=message.txt of=floppya.img bs=512 count=1 seek=30 conv=notrunc
+	dd if=message.txt of=$@ bs=512 count=1 seek=30 conv=notrunc
+
+loadFile : loadFile.c
+	gcc -o $@ $<
 
 kernel : kernel.o kernel_asm.o
 	ld86 -o $@ -d $^
@@ -25,8 +31,8 @@ kernel.o : kernel.c
 bootload : bootload.asm
 	nasm $<
 
-bochsTest: opsys.bxrc floppya.img
+bochsTest: opsys.bxrc floppya.img loadOtherFiles
 	bochs -f opsys.bxrc
 
 clean:
-	rm -f floppya.img bochsout.txt bootload *.o kernel
+	rm -f floppya.img bochsout.txt bootload *.o kernel loadFile
