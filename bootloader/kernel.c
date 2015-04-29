@@ -12,6 +12,7 @@ void readString(char* store);
 void readSector(char* buffer, int sector);
 void readFile(char* name, char* buffer);
 void executeProgram(char* name, int segment);
+void terminate();
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
@@ -160,8 +161,21 @@ void executeProgram(char* name, int segment){
 
 
 
-void handleInterrupt21(int ax, int bx, int cx, int dx){
+void terminate(){
   char shell[6];
+  shell[0] = 's';
+  shell[1] = 'h';
+  shell[2] = 'e';
+  shell[3] = 'l';
+  shell[4] = 'l';
+  shell[5] = '\0';
+  interrupt(0x21, 4, shell, 0x2000, 0);
+  return;
+}
+
+
+
+void handleInterrupt21(int ax, int bx, int cx, int dx){
   switch(ax){
     case 0x0: /*Print String*/
       printString(bx);
@@ -179,13 +193,7 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       executeProgram(bx, cx);
       break;
     case 0x5: /*Terminate Program*/
-      shell[0] = 's';
-      shell[1] = 'h';
-      shell[2] = 'e';
-      shell[3] = 'l';
-      shell[4] = 'l';
-      shell[5] = '\0';
-      interrupt(0x21, 4, shell, 0x2000, 0);
+      terminate();
       break;
     default:
       /*printString("Interrupt21 got undefined ax.");*/

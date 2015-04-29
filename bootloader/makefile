@@ -41,7 +41,7 @@ shell.o : shell.c
 bootload : bootload.asm
 	nasm $<
 
-bochsTest: opsys.bxrc floppya.img loadedOtherFiles.none
+bochsTest: opsys.bxrc floppya.img
 	bochs -f opsys.bxrc
 
 clean:
