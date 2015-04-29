@@ -23,7 +23,6 @@ int main(){
   makeInterrupt21();
 
   interrupt(0x21, 4, "shell\0", 0x2000, 0);
-  printString("This shouldn't print\0");
 
   return 0;
 }
@@ -156,11 +155,13 @@ void executeProgram(char* name, int segment){
   }
 
   launchProgram(segment);
+  return;
 }
 
 
 
 void handleInterrupt21(int ax, int bx, int cx, int dx){
+  char shell[6];
   switch(ax){
     case 0x0: /*Print String*/
       printString(bx);
@@ -178,10 +179,17 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       executeProgram(bx, cx);
       break;
     case 0x5: /*Terminate Program*/
-      interrupt(0x21, 4, "shell\0", 0x2000, 0);
+      shell[0] = 's';
+      shell[1] = 'h';
+      shell[2] = 'e';
+      shell[3] = 'l';
+      shell[4] = 'l';
+      shell[5] = '\0';
+      interrupt(0x21, 4, shell, 0x2000, 0);
       break;
     default:
-      printString("Interrupt21 got an ax that was undefined.");
+      /*printString("Interrupt21 got undefined ax.");*/
+      break;
   }
 
   return;

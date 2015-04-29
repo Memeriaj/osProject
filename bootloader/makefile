@@ -3,21 +3,17 @@
 
 main : bochsTest
 
-loadedOtherFiles.none : floppya.img loadFile message.txt tstprg tstpr2 shell
-	./loadFile message.txt
-	./loadFile tstprg
-	./loadFile tstpr2
-	./loadFile shell
-	touch loadedOtherFiles.none
-
-
-floppya.img : bootload kernel map.img dir.img
+floppya.img : bootload kernel map.img dir.img loadFile message.txt tstprg tstpr2 shell
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	dd if=bootload of=$@ bs=512 count=1 conv=notrunc
 	dd if=map.img of=$@ bs=512 conv=notrunc seek=1
 	dd if=dir.img of=$@ bs=512 conv=notrunc seek=2
 	dd if=kernel of=$@ bs=512 conv=notrunc seek=3
 	dd if=message.txt of=$@ bs=512 count=1 seek=30 conv=notrunc
+	./loadFile message.txt
+	./loadFile tstprg
+	./loadFile tstpr2
+	./loadFile shell
 
 loadFile : loadFile.c
 	gcc -o $@ $<
@@ -49,4 +45,4 @@ bochsTest: opsys.bxrc floppya.img loadedOtherFiles.none
 	bochs -f opsys.bxrc
 
 clean:
-	rm -f floppya.img bochsout.txt bootload *.o kernel loadFile loadedOtherFiles.none shell
+	rm -f floppya.img bochsout.txt bootload *.o kernel loadFile shell

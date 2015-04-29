@@ -7,7 +7,9 @@
 void matchCommand(char* line);
 int match(char* line, char* command);
 void breakApartArgs(char* args[], char* line);
+
 void typeCommand(char* args[]);
+void executeCommand(char* args[]);
 
 int main(){
   char line[MAXLINELENGTH];
@@ -28,6 +30,8 @@ void matchCommand(char* line){
 
   if(match(args[0], "type\0")){
     typeCommand(args);
+  }else if(match(args[0], "execute\0")){
+    executeCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -67,5 +71,10 @@ void typeCommand(char* args[]){
   char buffer[MAXFILESIZE];
   interrupt(0x21, 3, args[1], buffer, 0);
   interrupt(0x21, 0, buffer, 0 , 0);
+  return;
+}
+
+void executeCommand(char* args[]){
+  interrupt(0x21, 4, args[1], 0x2000, 0);
   return;
 }
