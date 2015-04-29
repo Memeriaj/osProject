@@ -22,10 +22,9 @@ void loadFileSectors(char* buffer, char* dir);
 int main(){
   makeInterrupt21();
 
-  interrupt(0x21, 4, "tstprg\0", 0x2000, 0);
+  interrupt(0x21, 4, "tstpr2\0", 0x2000, 0);
   printString("This shouldn't print\0");
 
-  while(1);
   return 0;
 }
 
@@ -177,6 +176,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       break;
     case 0x4: /*Execute Program*/
       executeProgram(bx, cx);
+      break;
+    case 0x5: /*Terminate Program*/
+      while(1);
       break;
     default:
       printString("Interrupt21 got an ax that was undefined.");
