@@ -13,12 +13,14 @@ void readSector(char* buffer, int sector);
 void readFile(char* name, char* buffer);
 void executeProgram(char* name, int segment);
 void terminate();
+void writeSector(char* toWrite, int sectorNum);
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
 int div(int a, int b);
 int matchNames(char* first, char* second, int length);
 void loadFileSectors(char* buffer, char* dir);
+void readWriteSector(char* buffer, int sector, int readWrite);
 
 int main(){
   makeInterrupt21();
@@ -68,19 +70,7 @@ void readString(char* store){
 
 
 void readSector(char* buffer, int sector){
-  int q;
-
-  int read = 2;
-  int sectorsToRead = 1;
-  int trackNumber = div(sector, 36);
-  int realativeSectorNumber = mod(sector, 18)+1;
-  int headNumber = mod(div(sector,18),2);
-  int deviceNumber = 0;
-
-  char* retrievedSector = interrupt(0x13, read*256+sectorsToRead,
-                                      buffer,
-                                      trackNumber*256+realativeSectorNumber,
-                                      headNumber*256+deviceNumber);
+  readWriteSector(buffer, sector, 2);
   return;
 }
 
@@ -175,6 +165,28 @@ void terminate(){
 
 
 
+void writeSector(char* toWrite, int sectorNum){
+  readWriteSector(toWrite, sectorNum, 3);
+  return;
+}
+
+void readWriteSector(char* buffer, int sector, int readWrite){
+  int q;
+
+  int sectorsToRead = 1;
+  int trackNumber = div(sector, 36);
+  int realativeSectorNumber = mod(sector, 18)+1;
+  int headNumber = mod(div(sector,18),2);
+  int deviceNumber = 0;
+
+  char* retrievedSector = interrupt(0x13, readWrite*256+sectorsToRead,
+                                      buffer,
+                                      trackNumber*256+realativeSectorNumber,
+                                      headNumber*256+deviceNumber);
+  return;
+}
+
+
 void handleInterrupt21(int ax, int bx, int cx, int dx){
   switch(ax){
     case 0x0: /*Print String*/
@@ -194,6 +206,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       break;
     case 0x5: /*Terminate Program*/
       terminate();
+      break;
+    case 0x6: /*Write Sector*/
+      writeSector(bx, cx);
       break;
     default:
       /*printString("Interrupt21 got undefined ax.");*/
