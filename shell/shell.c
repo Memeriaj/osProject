@@ -10,6 +10,7 @@ void breakApartArgs(char* args[], char* line);
 
 void typeCommand(char* args[]);
 void executeCommand(char* args[]);
+void deleteCommand(char* args[]);
 
 int main(){
   char line[MAXLINELENGTH];
@@ -32,6 +33,8 @@ void matchCommand(char* line){
     typeCommand(args);
   }else if(match(args[0], "execute\0")){
     executeCommand(args);
+  }else if(match(args[0], "delete\0")){
+    deleteCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -69,12 +72,17 @@ void breakApartArgs(char* args[], char* line){
 
 void typeCommand(char* args[]){
   char buffer[MAXFILESIZE];
-  interrupt(0x21, 3, args[1], buffer, 0);
-  interrupt(0x21, 0, buffer, 0 , 0);
+  interrupt(0x21, 0x3, args[1], buffer, 0);
+  interrupt(0x21, 0x0, buffer, 0 , 0);
   return;
 }
 
 void executeCommand(char* args[]){
-  interrupt(0x21, 4, args[1], 0x2000, 0);
+  interrupt(0x21, 0x4, args[1], 0x2000, 0);
+  return;
+}
+
+void deleteCommand(char* args[]){
+  interrupt(0x21, 0x7, args[1], 0, 0);
   return;
 }

@@ -6,6 +6,8 @@
 #define FILLERSECTOR 0x00
 #define SECTORSIZE 512
 #define MAXFILESIZE FILESECTORLENGTH*SECTORSIZE
+#define DIRECTORYSECTOR 2
+#define MAPSECTOR 1
 
 void printString(char* message);
 void readString(char* store);
@@ -14,6 +16,7 @@ void readFile(char* name, char* buffer);
 void executeProgram(char* name, int segment);
 void terminate();
 void writeSector(char* toWrite, int sectorNum);
+void deleteFile(char* name);
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
@@ -179,12 +182,49 @@ void readWriteSector(char* buffer, int sector, int readWrite){
   int headNumber = mod(div(sector,18),2);
   int deviceNumber = 0;
 
-  char* retrievedSector = interrupt(0x13, readWrite*256+sectorsToRead,
-                                      buffer,
+  char* retrievedSector = interrupt(0x13, readWrite*256+sectorsToRead, buffer,
                                       trackNumber*256+realativeSectorNumber,
                                       headNumber*256+deviceNumber);
   return;
 }
+
+
+
+void deleteFile(char* name){
+  char directory[SECTORSIZE], map[SECTORSIZE];
+  int entry, matched;
+  int sector, curSector;
+
+  readSector(directory, DIRECTORYSECTOR);
+  readSector(map, MAPSECTOR);
+
+  for(entry=0; entry<MAXFILEENTRY; entry++){
+    matched = matchNames(name, directory+entry*FILEENTRYLENGTH, NAMELENGTH);
+    if(matched == 1){
+      break;
+    }
+  }
+  if(matched == 0){
+    return;
+  }
+
+  directory[entry*FILEENTRYLENGTH] = FILLERSECTOR;
+
+  for(sector=0; sector<FILESECTORLENGTH; sector++){
+    curSector = *(directory+entry*FILEENTRYLENGTH+NAMELENGTH+sector);
+    if(curSector != FILLERSECTOR){
+      map[curSector] = FILLERSECTOR;
+    }else{
+      break;
+    }
+  }
+
+  writeSector(directory, DIRECTORYSECTOR);
+  writeSector(map, MAPSECTOR);
+
+  return;
+}
+
 
 
 void handleInterrupt21(int ax, int bx, int cx, int dx){
@@ -209,6 +249,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       break;
     case 0x6: /*Write Sector*/
       writeSector(bx, cx);
+      break;
+    case 0x7: /*Delete File*/
+      deleteFile(bx);
       break;
     default:
       /*printString("Interrupt21 got undefined ax.");*/
