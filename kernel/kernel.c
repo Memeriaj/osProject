@@ -17,6 +17,7 @@ void executeProgram(char* name, int segment);
 void terminate();
 void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
+void writeFile(char* filename, char* contents, int numSectors);
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 
 int mod(int a, int b);
@@ -227,6 +228,57 @@ void deleteFile(char* name){
 
 
 
+void writeFile(char* filename, char* contents, int numSectors){
+  char directory[SECTORSIZE], map[SECTORSIZE];
+  int entry, q, filenameEnd;
+  int sector, sectorCount, currentChar;
+  int remnants;
+
+  readSector(directory, DIRECTORYSECTOR);
+  readSector(map, MAPSECTOR);
+
+  /*Find empty directory*/
+  for(entry=0; entry<MAXFILEENTRY; entry++){
+    if(directory[entry*FILEENTRYLENGTH] == FILLERSECTOR){
+      break;
+    }
+  }
+
+  /*Write filename to directory*/
+  filenameEnd = 0;
+  for(q=0; q<NAMELENGTH; q++){
+    if(filename[q] == '\0' || filenameEnd){
+      filenameEnd = 1;
+      directory[entry*FILEENTRYLENGTH+q] = FILLERSECTOR;
+    }else{
+      directory[entry*FILEENTRYLENGTH+q] = filename[q];
+    }
+  }
+
+  /*Find and fill free sectors*/
+  sectorCount = 0;
+  for(sector=3; sector<SECTORSIZE && sectorCount<numSectors; sector++){
+    if(map[sector] == FILLERSECTOR){
+      map[sector] == 0xFF;
+      directory[entry*FILEENTRYLENGTH+NAMELENGTH+sectorCount] = sector;
+      writeSector(contents+sector*SECTORSIZE, sector);
+      sectorCount++;
+    }
+  }
+
+  /*Zero remnants of entry*/
+  for(remnants=NAMELENGTH+sectorCount+1; remnants<FILEENTRYLENGTH; remnants++){
+    directory[entry*FILEENTRYLENGTH+remnants] = FILLERSECTOR;
+  }
+
+  writeSector(directory, DIRECTORYSECTOR);
+  writeSector(map, MAPSECTOR);
+  
+  return;
+}
+
+
+
 void handleInterrupt21(int ax, int bx, int cx, int dx){
   switch(ax){
     case 0x0: /*Print String*/
@@ -252,6 +304,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       break;
     case 0x7: /*Delete File*/
       deleteFile(bx);
+      break;
+    case 0x8: /*Write File*/
+      writeFile(bx, cx, dx);
       break;
     default:
       /*printString("Interrupt21 got undefined ax.");*/
