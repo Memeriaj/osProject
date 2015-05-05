@@ -1,27 +1,6 @@
-/*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/\
-#define MAXLINELENGTH 256
-#define MAXARGSLENGTH 100
-#define MAXARGCHARS 100
-#define MAXFILEENTRY 16
-#define FILEENTRYLENGTH 32
-#define NAMELENGTH 6
-#define FILESECTORLENGTH (FILEENTRYLENGTH - NAMELENGTH)
-#define FILLERSECTOR 0x00
-#define SECTORSIZE 512
-#define MAXFILESIZE FILESECTORLENGTH*SECTORSIZE
-#define DIRECTORYSECTOR 2
-#define MAPSECTOR 1
-
-void matchCommand(char* line);
-int match(char* line, char* command);
-void breakApartArgs(char* args[], char* line);
-
-void typeCommand(char* args[]);
-void executeCommand(char* args[]);
-void deleteCommand(char* args[]);
-void copyCommand(char* args[]);
-void dirCommand(char* args[]);
-void createCommand(char* args[]);
+/*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/
+#include "../definitions.h"
+#include "shell.h"
 
 int main(){
   char line[MAXLINELENGTH];

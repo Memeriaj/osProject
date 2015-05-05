@@ -19,8 +19,8 @@ include $(KERNELDIR)makefile
 $(FLOPPYDIR)shell : $(SHELLDIR)shell
 	mv $< $@
 
-$(LINKEXEC) : % : %.o %_asm.o
-	ld86 -o $@ -d $^
+$(LINKEXEC) : % : %.o %_asm.o %.h definitions.h
+	ld86 -o $@ -d $*.o $*_asm.o
 
 $(KERNELDIR)kernel_asm.o : $(KERNELDIR)kernel.asm
 $(SHELLDIR)shell_asm.o : $(SHELLDIR)lib.asm
