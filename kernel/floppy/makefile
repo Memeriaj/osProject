@@ -38,4 +38,5 @@ cleanFloppy :
 	rm -f $(FLOPPYDIR)bootload \
 				$(FLOPPYDIR)loadFile \
 				$(FLOPPYDIR)shell \
-				$(FLOPPYDIR)kernel
+				$(FLOPPYDIR)kernel \
+				$(FLOPPYDIR)floppya.img

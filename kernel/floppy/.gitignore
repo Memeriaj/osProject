@@ -2,3 +2,4 @@ bootload
 kernel
 loadFile
 shell
+floppya.img
