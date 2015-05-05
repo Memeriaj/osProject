@@ -49,12 +49,13 @@ void readString(char* store){
   int cur = 0;
   *(store+cur) = interrupt(0x16, 0, 0, 0, 0);
   while(*(store+cur) != 0xd){
-    interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
-    cur++;
-
     if(*(store+cur) == 0x8 && cur > 0){
       /* We might want to write a <space> to the location to blank it */
-      cur-= 2;
+      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+      cur-= 1;
+    } else if (*(store+cur) != 0x8){
+      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+      cur++;
     }
 
     *(store+cur) = interrupt(0x16, 0, 0, 0, 0);
@@ -106,6 +107,7 @@ void readFile(char* name, char* buffer){
       break;
     }
   }
+  buffer[0] = '\0';
   if(matched == 0){
     return;
   }
@@ -261,7 +263,7 @@ void writeFile(char* filename, char* contents, int numSectors){
     if(map[sector] == FILLERSECTOR){
       map[sector] == 0xFF;
       directory[entry*FILEENTRYLENGTH+NAMELENGTH+sectorCount] = sector;
-      writeSector(contents+sector*SECTORSIZE, sector);
+      writeSector(contents+sectorCount*SECTORSIZE, sector);
       sectorCount++;
     }
   }
@@ -273,7 +275,7 @@ void writeFile(char* filename, char* contents, int numSectors){
 
   writeSector(directory, DIRECTORYSECTOR);
   writeSector(map, MAPSECTOR);
-  
+
   return;
 }
 

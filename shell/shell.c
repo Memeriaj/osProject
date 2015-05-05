@@ -3,6 +3,7 @@
 #define MAXARGSLENGTH 100
 #define MAXARGCHARS 100
 #define MAXFILESIZE 1024
+#define SECTORSIZE 512
 
 void matchCommand(char* line);
 int match(char* line, char* command);
@@ -11,6 +12,9 @@ void breakApartArgs(char* args[], char* line);
 void typeCommand(char* args[]);
 void executeCommand(char* args[]);
 void deleteCommand(char* args[]);
+void copyCommand(char* args[]);
+void dirCommand(char* args[]);
+void createCommand(char* args[]);
 
 int main(){
   char line[MAXLINELENGTH];
@@ -21,7 +25,7 @@ int main(){
     matchCommand(line);
   }
   interrupt(0x21, 5, 0, 0, 0);
-  return;
+  return 0;
 }
 
 
@@ -35,6 +39,12 @@ void matchCommand(char* line){
     executeCommand(args);
   }else if(match(args[0], "delete\0")){
     deleteCommand(args);
+  }else if(match(args[0], "copy\0")){
+    copyCommand(args);
+  }else if(match(args[0], "dir\0")){
+    dirCommand(args);
+  }else if(match(args[0], "create\0")){
+    createCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -85,4 +95,28 @@ void executeCommand(char* args[]){
 void deleteCommand(char* args[]){
   interrupt(0x21, 0x7, args[1], 0, 0);
   return;
+}
+
+void copyCommand(char* args[]){
+  char buffer[MAXFILESIZE];
+  int charCount = 0;
+  int rem = 0;
+  interrupt(0x21, 0x3, args[1], buffer, 0);
+  while(buffer[charCount] != '\0' && charCount < MAXFILESIZE){
+    charCount++;
+  }
+  charCount++;
+  if(charCount % SECTORSIZE != 0){
+    rem = 1;
+  }
+  interrupt(0x21, 0x8, args[2], buffer , (charCount / SECTORSIZE) + rem);
+  return;
+}
+
+void dirCommand(char* args[]) {
+  ;
+}
+
+void createCommand(char* args[]) {
+  ;
 }
