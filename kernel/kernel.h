@@ -1,5 +1,26 @@
 /*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/
 
+#define EXECUTEAREA 0x2000
+
+/*Print letters*/
+#define UPPERCONVERSION 256
+#define PRINTLETTERINTERTUPT 0x10
+#define LETTEROFFSET 0xe*UPPERCONVERSION
+
+/*Read letters*/
+#define READCHARINTERRUPT 0x16
+#define BACKSPACECODE 0x8
+#define ENTERCODE 0xd
+
+/*Sector indicators*/
+#define SECTORINTERRUPT 0x13
+#define READSECTORINDICATOR 2
+#define WRITESECTORINDICATOR 3
+#define SECTORSTOREAD 1
+#define DEVICENUMBER 0
+
+
+
 /*Interrupt functions*/
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 void printString(char* message);

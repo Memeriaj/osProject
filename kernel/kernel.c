@@ -4,9 +4,7 @@
 
 int main(){
   makeInterrupt21();
-
-  interrupt(0x21, 4, "shell\0", 0x2000, 0);
-
+  terminate();
   return 0;
 }
 
@@ -15,7 +13,7 @@ int main(){
 void printString(char* message){
   char* current = message;
   while(*current != '\0'){
-    interrupt(0x10, 0xe*256+(*current), 0, 0, 0);
+    interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+(*current), 0, 0, 0);
     current++;
   }
   return;
@@ -23,21 +21,21 @@ void printString(char* message){
 
 void readString(char* store){
   int cur = 0;
-  *(store+cur) = interrupt(0x16, 0, 0, 0, 0);
-  while(*(store+cur) != 0xd){
-    if(*(store+cur) == 0x8 && cur > 0){
+  store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
+  while(store[cur] != ENTERCODE){
+    interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
+
+    if(store[cur] == BACKSPACECODE && cur > 0){
       /* We might want to write a <space> to the location to blank it */
-      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
-      cur-= 1;
-    } else if (*(store+cur) != 0x8){
-      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+      cur -= 1;
+    } else if (store[cur] != BACKSPACECODE){
       cur++;
     }
 
-    *(store+cur) = interrupt(0x16, 0, 0, 0, 0);
+    store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
   }
-  interrupt(0x10, 0xe*256+'\n', 0, 0, 0);
-  interrupt(0x10, 0xe*256+'\r', 0, 0, 0);
+  interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+'\n', 0, 0, 0);
+  interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+'\r', 0, 0, 0);
 
   *(store+cur) = '\r';
   cur++;
@@ -50,7 +48,7 @@ void readString(char* store){
 
 
 void readSector(char* buffer, int sector){
-  readWriteSector(buffer, sector, 2);
+  readWriteSector(buffer, sector, READSECTORINDICATOR);
   return;
 }
 
@@ -145,29 +143,27 @@ void terminate(){
   shell[3] = 'l';
   shell[4] = 'l';
   shell[5] = '\0';
-  interrupt(0x21, 4, shell, 0x2000, 0);
+  interrupt(0x21, 4, shell, EXECUTEAREA, 0);
   return;
 }
 
 
 
 void writeSector(char* toWrite, int sectorNum){
-  readWriteSector(toWrite, sectorNum, 3);
+  readWriteSector(toWrite, sectorNum, WRITESECTORINDICATOR);
   return;
 }
 
 void readWriteSector(char* buffer, int sector, int readWrite){
   int q;
 
-  int sectorsToRead = 1;
   int trackNumber = div(sector, 36);
   int realativeSectorNumber = mod(sector, 18)+1;
   int headNumber = mod(div(sector,18),2);
-  int deviceNumber = 0;
 
-  char* retrievedSector = interrupt(0x13, readWrite*256+sectorsToRead, buffer,
-                                      trackNumber*256+realativeSectorNumber,
-                                      headNumber*256+deviceNumber);
+  interrupt(SECTORINTERRUPT, readWrite*UPPERCONVERSION+SECTORSTOREAD, buffer,
+    trackNumber*UPPERCONVERSION+realativeSectorNumber,
+    headNumber*UPPERCONVERSION+DEVICENUMBER);
   return;
 }
 
@@ -239,9 +235,9 @@ void writeFile(char* filename, char* contents, int numSectors){
 
   /*Find and fill free sectors*/
   sectorCount = 0;
-  for(sector=3; sector<SECTORSIZE && sectorCount<numSectors; sector++){
-    if(map[sector] == FILLERSECTOR){
-      map[sector] == 0xFF;
+  for(sector=DIRECTORYSECTOR+1; sector<SECTORSIZE && sectorCount<numSectors; sector++){
+    if(map[sector] != FILLERSECTOR){
+      map[sector] = FILLERSECTOR;
       directory[entry*FILEENTRYLENGTH+NAMELENGTH+sectorCount] = sector;
       writeSector(contents+sectorCount*SECTORSIZE, sector);
       sectorCount++;
