@@ -7,10 +7,10 @@ include $(FLOPPYDIR)makefile
 
 
 $(KERNELDIR)floppya.img : $(FLOPPYDIR)floppya.img
-	mv $< $@
+	cp $< $@
 
 $(FLOPPYDIR)kernel : $(KERNELDIR)kernel
-	mv $< $@
+	cp $< $@
 
 bochsTest: $(KERNELDIR)opsys.bxrc $(KERNELDIR)floppya.img
 	cd $(KERNELDIR) && \

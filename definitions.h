@@ -4,6 +4,7 @@
 #define FILLERSECTOR 0x00
 #define SECTORSIZE 512
 #define MAXFILESIZE FILESECTORLENGTH*SECTORSIZE
+#define EXECUTEAREA 0x2000
 
 /*Directory configuration*/
 #define MAXFILEENTRY 16

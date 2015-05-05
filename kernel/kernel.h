@@ -1,7 +1,5 @@
 /*Written by: Austin Fahsl, Alex Memering and Joel Shapiro*/
 
-#define EXECUTEAREA 0x2000
-
 /*Print letters*/
 #define UPPERCONVERSION 256
 #define PRINTLETTERINTERTUPT 0x10

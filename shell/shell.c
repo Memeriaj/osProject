@@ -15,6 +15,7 @@ int main(){
 }
 
 
+
 void matchCommand(char* line){
   char* args[MAXARGSLENGTH];
   breakApartArgs(args, line);
@@ -73,31 +74,45 @@ void typeCommand(char* args[]){
   return;
 }
 
+
+
 void executeCommand(char* args[]){
-  interrupt(0x21, 0x4, args[1], 0x2000, 0);
+  interrupt(0x21, 0x4, args[1], EXECUTEAREA, 0);
   return;
 }
+
+
 
 void deleteCommand(char* args[]){
   interrupt(0x21, 0x7, args[1], 0, 0);
   return;
 }
 
+
+
 void copyCommand(char* args[]){
   char buffer[MAXFILESIZE];
   int charCount = 0;
-  int rem = 0;
+
   interrupt(0x21, 0x3, args[1], buffer, 0);
   while(buffer[charCount] != '\0' && charCount < MAXFILESIZE){
     charCount++;
   }
   charCount++;
-  if(charCount % SECTORSIZE != 0){
-    rem = 1;
-  }
-  interrupt(0x21, 0x8, args[2], buffer , (charCount / SECTORSIZE) + rem);
+
+  interrupt(0x21, 0x8, args[2], buffer , neededSectors(charCount));
   return;
 }
+
+int neededSectors(int charactersToStore){
+  int rem = 0;
+  if(charactersToStore % SECTORSIZE != 0){
+    rem = 1;
+  }
+  return (charactersToStore / SECTORSIZE) + rem;
+}
+
+
 
 void dirCommand(char* args[]) {
   char directory[SECTORSIZE];
@@ -109,51 +124,69 @@ void dirCommand(char* args[]) {
   pos = 0;
   for(entry=0; entry<MAXFILEENTRY; entry++){
     if(directory[entry*FILEENTRYLENGTH] != FILLERSECTOR){
-      for(q=0; q<NAMELENGTH; q++){
-        if(directory[entry*FILEENTRYLENGTH+q] != FILLERSECTOR){
-          output[pos] = directory[entry*FILEENTRYLENGTH+q];
-        }else{
-          output[pos] = ' ';
-        }
-        pos++;
-      }
+      pos += addEntryName(output+pos, directory+entry*FILEENTRYLENGTH);
 
       output[pos] = ' ';
       pos++;
       output[pos] = ' ';
       pos++;
 
-      for(sectorCount=0; sectorCount<FILESECTORLENGTH; sectorCount++){
-        if(directory[entry*FILEENTRYLENGTH+NAMELENGTH+sectorCount] == FILLERSECTOR){
-          break;
-        }
-      }
+      pos += addSectorCount(output+pos, directory+entry*FILEENTRYLENGTH+NAMELENGTH);
 
-      /*'0' is charater #48*/
-      output[pos] = (sectorCount / 10)+48;
-      pos++;
-      q = sectorCount & 15;
-      if(q >= 10){
-        q = q-10;
-      }
-      output[pos] = q+48;
-      pos++;
       output[pos] = '\r';
       pos++;
       output[pos] = '\n';
       pos++;
-      output[pos] = '\0';
     }
   }
+  output[pos] = '\0';
   interrupt(0x21, 0x0, output, 0, 0);
   return;
 }
+
+int addEntryName(char* output, char* name){
+  int q;
+  for(q=0; q<NAMELENGTH; q++){
+    if(name[q] != FILLERSECTOR){
+      output[q] = name[q];
+    }else{
+      output[q] = ' ';
+    }
+  }
+  return q;
+}
+
+int addSectorCount(char* output, char* sectors){
+  int sectorCount;
+  int pos = 0;
+
+  for(sectorCount=0; sectorCount<FILESECTORLENGTH; sectorCount++){
+    if(sectors[sectorCount] == FILLERSECTOR){
+      break;
+    }
+  }
+
+  output[pos] = (sectorCount / 10)+'0';
+  pos++;
+  output[pos] = fastMod10(sectorCount)+'0';
+  pos++;
+  return pos;
+}
+
+int fastMod10(int num){
+  int out = num & 15;
+  if(out >= 10){
+    out = out-10;
+  }
+  return out;
+}
+
+
 
 void createCommand(char* args[]) {
   char buffer[MAXFILESIZE];
   char line[MAXLINELENGTH];
   int charCount = 0;
-  int rem = 0;
   int q;
 
   while(1){
@@ -162,21 +195,18 @@ void createCommand(char* args[]) {
 
     if(line[0] == '\r'){
       buffer[charCount] = '\0';
+      charCount++;
       break;
     }
 
-    q=0;
+    q = 0;
     while(line[q] != '\0'){
       buffer[charCount] = line[q];
       charCount++;
       q++;
     }
   }
-  charCount++;
-  if(charCount % SECTORSIZE != 0){
-    rem = 1;
-  }
 
-  interrupt(0x21, 0x8, args[1], buffer, (charCount / SECTORSIZE) + rem);
+  interrupt(0x21, 0x8, args[1], buffer, neededSectors(charCount));
   return;
 }

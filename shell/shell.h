@@ -19,3 +19,8 @@ void deleteCommand(char* args[]);
 void copyCommand(char* args[]);
 void dirCommand(char* args[]);
 void createCommand(char* args[]);
+
+/*Helpers*/
+int neededSectors(int charactersToStore);
+int addEntryName(char* output, char* name);
+int fastMod10(int num);

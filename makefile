@@ -17,7 +17,7 @@ include $(KERNELDIR)makefile
 
 
 $(FLOPPYDIR)shell : $(SHELLDIR)shell
-	mv $< $@
+	cp $< $@
 
 $(LINKEXEC) : % : %.o %_asm.o %.h definitions.h
 	ld86 -o $@ -d $*.o $*_asm.o
