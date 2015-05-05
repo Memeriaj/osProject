@@ -2,8 +2,15 @@
 #define MAXLINELENGTH 256
 #define MAXARGSLENGTH 100
 #define MAXARGCHARS 100
-#define MAXFILESIZE 1024
+#define MAXFILEENTRY 16
+#define FILEENTRYLENGTH 32
+#define NAMELENGTH 6
+#define FILESECTORLENGTH (FILEENTRYLENGTH - NAMELENGTH)
+#define FILLERSECTOR 0x00
 #define SECTORSIZE 512
+#define MAXFILESIZE FILESECTORLENGTH*SECTORSIZE
+#define DIRECTORYSECTOR 2
+#define MAPSECTOR 1
 
 void matchCommand(char* line);
 int match(char* line, char* command);
@@ -114,7 +121,53 @@ void copyCommand(char* args[]){
 }
 
 void dirCommand(char* args[]) {
-  ;
+  char directory[SECTORSIZE];
+  char output[SECTORSIZE];
+  int pos, entry, q, sectorCount;
+
+  interrupt(0x21, 0x2, directory, DIRECTORYSECTOR, 0);
+
+  pos = 0;
+  for(entry=0; entry<MAXFILEENTRY; entry++){
+    if(directory[entry*FILEENTRYLENGTH] != FILLERSECTOR){
+      for(q=0; q<NAMELENGTH; q++){
+        if(directory[entry*FILEENTRYLENGTH+q] != FILLERSECTOR){
+          output[pos] = directory[entry*FILEENTRYLENGTH+q];
+        }else{
+          output[pos] = ' ';
+        }
+        pos++;
+      }
+
+      output[pos] = ' ';
+      pos++;
+      output[pos] = ' ';
+      pos++;
+
+      for(sectorCount=0; sectorCount<FILESECTORLENGTH; sectorCount++){
+        if(directory[entry*FILEENTRYLENGTH+NAMELENGTH+sectorCount] == FILLERSECTOR){
+          break;
+        }
+      }
+
+      /*'0' is charater #48*/
+      output[pos] = (sectorCount / 10)+48;
+      pos++;
+      q = sectorCount & 15;
+      if(q >= 10){
+        q = q-10;
+      }
+      output[pos] = q+48;
+      pos++;
+      output[pos] = '\r';
+      pos++;
+      output[pos] = '\n';
+      pos++;
+      output[pos] = '\0';
+    }
+  }
+  interrupt(0x21, 0x0, output, 0, 0);
+  return;
 }
 
 void createCommand(char* args[]) {

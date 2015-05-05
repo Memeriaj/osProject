@@ -97,10 +97,10 @@ int div(int a, int b){
 
 
 void readFile(char* name, char* buffer){
-  char directory[512];
+  char directory[SECTORSIZE];
   int entry, matched;
 
-  readSector(directory, 2);
+  readSector(directory, DIRECTORYSECTOR);
   for(entry=0; entry<MAXFILEENTRY; entry++){
     matched = matchNames(name, directory+entry*FILEENTRYLENGTH, NAMELENGTH);
     if(matched == 1){
