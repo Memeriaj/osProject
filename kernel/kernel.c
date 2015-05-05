@@ -63,7 +63,6 @@ void readString(char* store){
   interrupt(0x10, 0xe*256+'\n', 0, 0, 0);
   interrupt(0x10, 0xe*256+'\r', 0, 0, 0);
 
-  cur++;
   *(store+cur) = '\r';
   cur++;
   *(store+cur) = '\n';
@@ -118,8 +117,13 @@ void readFile(char* name, char* buffer){
 }
 
 int matchNames(char* first, char* second, int length){
-  int namePos;
+  int namePos, firstEnd, secondEnd;
   for(namePos=0; namePos<length; namePos++){
+    firstEnd = first[namePos] == '\r' || first[namePos] == '\0';
+    secondEnd = second[namePos] == '\r' || second[namePos] == '\0';
+    if(firstEnd && secondEnd){
+      return 1;
+    }
     if(first[namePos] != second[namePos]){
       return 0;
     }
@@ -249,7 +253,7 @@ void writeFile(char* filename, char* contents, int numSectors){
   /*Write filename to directory*/
   filenameEnd = 0;
   for(q=0; q<NAMELENGTH; q++){
-    if(filename[q] == '\0' || filenameEnd){
+    if(filename[q] == '\0' || filename[q] == '\r' || filenameEnd){
       filenameEnd = 1;
       directory[entry*FILEENTRYLENGTH+q] = FILLERSECTOR;
     }else{

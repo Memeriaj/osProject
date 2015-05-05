@@ -171,5 +171,33 @@ void dirCommand(char* args[]) {
 }
 
 void createCommand(char* args[]) {
-  ;
+  char buffer[MAXFILESIZE];
+  char line[MAXLINELENGTH];
+  int charCount = 0;
+  int rem = 0;
+  int q;
+
+  while(1){
+    interrupt(0x21, 0, "> ", 0, 0);
+    interrupt(0x21, 1, line, 0, 0);
+
+    if(line[0] == '\r'){
+      buffer[charCount] = '\0';
+      break;
+    }
+
+    q=0;
+    while(line[q] != '\0'){
+      buffer[charCount] = line[q];
+      charCount++;
+      q++;
+    }
+  }
+  charCount++;
+  if(charCount % SECTORSIZE != 0){
+    rem = 1;
+  }
+
+  interrupt(0x21, 0x8, args[1], buffer, (charCount / SECTORSIZE) + rem);
+  return;
 }
