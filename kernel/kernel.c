@@ -23,12 +23,12 @@ void readString(char* store){
   int cur = 0;
   store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
   while(store[cur] != ENTERCODE){
-    interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
-
     if(store[cur] == BACKSPACECODE && cur > 0){
       /* We might want to write a <space> to the location to blank it */
+      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
       cur -= 1;
     } else if (store[cur] != BACKSPACECODE){
+      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
       cur++;
     }
 
