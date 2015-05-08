@@ -3,11 +3,19 @@
 #include "kernel.h"
 
 int main(){
+  char shell[6];
   makeInterrupt21();
 
   initializeProcessTable();
   makeTimerInterrupt();
-  terminate();
+
+  shell[0] = 's';
+  shell[1] = 'h';
+  shell[2] = 'e';
+  shell[3] = 'l';
+  shell[4] = 'l';
+  shell[5] = '\0';
+  interrupt(0x21, 4, shell, EXECUTEAREA, 0);
   return 0;
 }
 
@@ -131,10 +139,12 @@ void executeProgram(char* name){
   int q;
   int segment;
 
+  setKernelDataSegment();
   for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
     if(!processTable[q].active){
-      segment = findProcessTableSegment(q);
       processTable[q].active = 1;
+      restoreDataSegment();
+      segment = findProcessTableSegment(q);
       break;
     }
   }
@@ -144,21 +154,16 @@ void executeProgram(char* name){
     putInMemory(segment, curLoadChar, buffer[curLoadChar]);
   }
 
-  launchProgram(segment);
+  initializeProgram(segment);
   return;
 }
 
 
 
 void terminate(){
-  char shell[6];
-  shell[0] = 's';
-  shell[1] = 'h';
-  shell[2] = 'e';
-  shell[3] = 'l';
-  shell[4] = 'l';
-  shell[5] = '\0';
-  interrupt(0x21, 4, shell, EXECUTEAREA, 0);
+  setKernelDataSegment();
+  processTable[currentProcess].active = 0;
+  while(1);
   return;
 }
 
