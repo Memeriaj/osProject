@@ -19,7 +19,7 @@
 
 
 
-/*Interrupt functions*/
+/*Interrupt 21 functions*/
 void handleInterrupt21(int ax, int bx, int cx, int dx);
 void printString(char* message);
 void readString(char* store);
@@ -30,6 +30,9 @@ void terminate();
 void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
 void writeFile(char* filename, char* contents, int numSectors);
+
+/*Time intterupt functions*/
+void handleTimerInterrupt(int segment, int sp);
 
 /*Helper functions*/
 int mod(int a, int b);

@@ -4,6 +4,7 @@
 
 int main(){
   makeInterrupt21();
+  makeTimerInterrupt();
   terminate();
   return 0;
 }
@@ -294,4 +295,11 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
   }
 
   return;
+}
+
+
+
+void handleTimerInterrupt(int segment, int sp){
+  printString(" Tic\r\n");
+  returnFromTimer(segment, sp);
 }
