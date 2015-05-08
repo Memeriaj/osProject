@@ -4,6 +4,8 @@
 
 int main(){
   makeInterrupt21();
+
+  initializeProcessTable();
   makeTimerInterrupt();
   terminate();
   return 0;
@@ -123,9 +125,19 @@ void loadFileSectors(char* buffer, char* dir){
 
 
 
-void executeProgram(char* name, int segment){
+void executeProgram(char* name){
   char buffer[MAXFILESIZE];
   int curLoadChar;
+  int q;
+  int segment;
+
+  for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
+    if(!processTable[q].active){
+      segment = findProcessTableSegment(q);
+      processTable[q].active = 1;
+      break;
+    }
+  }
 
   readFile(name, buffer);
   for(curLoadChar=0; curLoadChar<MAXFILESIZE; curLoadChar++){
@@ -275,7 +287,7 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       readFile(bx, cx);
       break;
     case 0x4: /*Execute Program*/
-      executeProgram(bx, cx);
+      executeProgram(bx);
       break;
     case 0x5: /*Terminate Program*/
       terminate();
@@ -300,6 +312,25 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
 
 
 void handleTimerInterrupt(int segment, int sp){
-  printString(" Tic\r\n");
+  /*printString(" Tic\r\n");*/
   returnFromTimer(segment, sp);
+}
+
+
+int findProcessTableEntry(int segment){
+  return (segment / 0x1000) - 2;
+}
+int findProcessTableSegment(int index){
+  return (index + 2) * 0x1000;
+}
+
+
+void initializeProcessTable(){
+  int q;
+  for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
+    processTable[q].active = 0;
+    processTable[q].stackPointer = INTITALSTACKLOCATION;
+  }
+  currentProcess = 0;
+  return;
 }

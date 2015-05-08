@@ -17,6 +17,9 @@
 #define SECTORSTOREAD 1
 #define DEVICENUMBER 0
 
+#define NUMBEROFPROCESSENTRIES 8
+#define INTITALSTACKLOCATION 0xff00
+
 
 
 /*Interrupt 21 functions*/
@@ -25,7 +28,7 @@ void printString(char* message);
 void readString(char* store);
 void readSector(char* buffer, int sector);
 void readFile(char* name, char* buffer);
-void executeProgram(char* name, int segment);
+void executeProgram(char* name);
 void terminate();
 void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
@@ -40,3 +43,16 @@ int div(int a, int b);
 int matchNames(char* first, char* second, int length);
 void loadFileSectors(char* buffer, char* dir);
 void readWriteSector(char* buffer, int sector, int readWrite);
+
+/*Process Table*/
+typedef struct processEntry{
+  int active;
+  int stackPointer;
+} ProcessEntry;
+ProcessEntry processTable[NUMBEROFPROCESSENTRIES];
+
+int findProcessTableEntry(int segment);
+int findProcessTableSegment(int index);
+
+int currentProcess;
+void initializeProcessTable();
