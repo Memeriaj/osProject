@@ -30,12 +30,12 @@ void readString(char* store){
   while(store[cur] != ENTERCODE){
     if(store[cur] == BACKSPACECODE && cur > 0){
 
-      interrupt(0x10, 0xe*256+store[cur], 0, 0, 0);
-      interrupt(0x10, 0xe*256+32, 0, 0, 0);
-      interrupt(0x10, 0xe*256+store[cur], 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+' ', 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
       cur -= 1;
     } else if (store[cur] != BACKSPACECODE){
-      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+*(store+cur), 0, 0, 0);
       cur++;
     }
 
