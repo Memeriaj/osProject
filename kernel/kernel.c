@@ -3,19 +3,13 @@
 #include "kernel.h"
 
 int main(){
-  char shell[6];
   makeInterrupt21();
-
   initializeProcessTable();
+
+  executeProgram("shell");
   makeTimerInterrupt();
 
-  shell[0] = 's';
-  shell[1] = 'h';
-  shell[2] = 'e';
-  shell[3] = 'l';
-  shell[4] = 'l';
-  shell[5] = '\0';
-  interrupt(0x21, 4, shell, EXECUTEAREA, 0);
+  while(1);
   return 0;
 }
 
@@ -35,10 +29,10 @@ void readString(char* store){
   store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
   while(store[cur] != ENTERCODE){
     if(store[cur] == BACKSPACECODE && cur > 0){
-      /* We might want to write a <space> to the location to blank it */
-      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+
+      interrupt(0x10, 0xe*256+store[cur], 0, 0, 0);
       interrupt(0x10, 0xe*256+32, 0, 0, 0);
-      interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
+      interrupt(0x10, 0xe*256+store[cur], 0, 0, 0);
       cur -= 1;
     } else if (store[cur] != BACKSPACECODE){
       interrupt(0x10, 0xe*256+*(store+cur), 0, 0, 0);
@@ -137,22 +131,30 @@ void executeProgram(char* name){
   char buffer[MAXFILESIZE];
   int curLoadChar;
   int q;
-  int segment;
+  int segment = 0;
 
   setKernelDataSegment();
   for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
-    if(!processTable[q].active){
-      processTable[q].active = 1;
-      restoreDataSegment();
+    if(processTable[q].active == 0){
       segment = findProcessTableSegment(q);
       break;
     }
+  }
+  restoreDataSegment();
+
+  if(segment == 0){
+    printString("Too many processes");
+    return;
   }
 
   readFile(name, buffer);
   for(curLoadChar=0; curLoadChar<MAXFILESIZE; curLoadChar++){
     putInMemory(segment, curLoadChar, buffer[curLoadChar]);
   }
+
+  setKernelDataSegment();
+  processTable[q].active = 1;
+  restoreDataSegment();
 
   initializeProgram(segment);
   return;
@@ -163,6 +165,7 @@ void executeProgram(char* name){
 void terminate(){
   setKernelDataSegment();
   processTable[currentProcess].active = 0;
+  processTable[currentProcess].stackPointer = INTITALSTACKLOCATION;
   while(1);
   return;
 }
@@ -307,7 +310,7 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       writeFile(bx, cx, dx);
       break;
     default:
-      /*printString("Interrupt21 got undefined ax.");*/
+      printString("Interrupt21 got undefined ax.");
       break;
   }
 
@@ -317,7 +320,43 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
 
 
 void handleTimerInterrupt(int segment, int sp){
-  /*printString(" Tic\r\n");*/
+  int q;
+  int nextProcess;
+  // char tic[9];
+  // tic[0] = 'T';
+  // tic[1] = 'i';
+  // tic[2] = 'c';
+  // tic[3] = ' ';
+  // tic[4] = '#';
+  // tic[5] = ' ';
+  // tic[6] = '#';
+  // tic[7] = '\r';
+  // tic[8] = '\n';
+
+  if(segment == findProcessTableSegment(currentProcess)){
+    processTable[currentProcess].stackPointer = sp;
+  }
+
+  nextProcess = currentProcess + 1;
+  for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
+    while(nextProcess >= NUMBEROFPROCESSENTRIES){
+      nextProcess -= NUMBEROFPROCESSENTRIES;
+    }
+
+    if(processTable[nextProcess].active == 1){
+      break;
+    }
+    nextProcess++;
+  }
+
+  sp = processTable[nextProcess].stackPointer;
+  segment = findProcessTableSegment(nextProcess);
+  currentProcess = nextProcess;
+
+  // tic[4] = '0'+currentProcess;
+  // tic[6] = '0'+(segment / 0x1000);
+  // printString(tic);
+
   returnFromTimer(segment, sp);
 }
 

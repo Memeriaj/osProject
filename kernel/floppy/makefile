@@ -4,7 +4,8 @@ FLOPPYPHONY = cleanFloppy
 LOADFILES =	shell \
 						message.txt \
 						tstprg \
-						tstpr2
+						tstpr2 \
+						phello
 REQLOADFILES = $(LOADFILES:%=$(FLOPPYDIR)%)
 
 REQDDS =	$(FLOPPYDIR)bootload \

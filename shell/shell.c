@@ -5,7 +5,6 @@
 int main(){
   char line[MAXLINELENGTH];
 
-  interrupt(0x21, 0, "In shell ", 0, 0);
   enableInterrupts();
   while(1){
     interrupt(0x21, 0, "Shell> ", 0, 0);
