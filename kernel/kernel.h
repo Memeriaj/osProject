@@ -19,6 +19,7 @@
 
 #define NUMBEROFPROCESSENTRIES 8
 #define INTITALSTACKLOCATION 0xff00
+#define NOONE NUMBEROFPROCESSENTRIES+2
 
 
 
@@ -27,8 +28,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx);
 void printString(char* message);
 void readString(char* store);
 void readSector(char* buffer, int sector);
-void readFile(char* name, char* buffer);
-void executeProgram(char* name);
+int readFile(char* name, char* buffer);
+void executeProgram(char* name, int toWaitOn);
 void terminate();
 void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
@@ -49,6 +50,7 @@ void readWriteSector(char* buffer, int sector, int readWrite);
 typedef struct processEntry{
   int active;
   int stackPointer;
+  int waitingOn;
 } ProcessEntry;
 ProcessEntry processTable[NUMBEROFPROCESSENTRIES];
 

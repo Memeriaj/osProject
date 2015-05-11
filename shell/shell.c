@@ -35,6 +35,8 @@ void matchCommand(char* line){
     createCommand(args);
   }else if(match(args[0], "kill\0")){
     killCommand(args);
+  }else if(match(args[0], "executeforeground\0")){
+    executeForegroundCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -47,6 +49,9 @@ int match(char* line, char* command){
     if(line[q] != command[q]){
       return 0;
     }
+  }
+  if(!((line[q] == '\n' || line[q] == '\0') && command[q] == '\0')){
+    return 0;
   }
   return 1;
 }
@@ -81,6 +86,12 @@ void typeCommand(char* args[]){
 
 void executeCommand(char* args[]){
   interrupt(0x21, 0x4, args[1], EXECUTEAREA, 0);
+  return;
+}
+
+
+void executeForegroundCommand(char* args[]){
+  interrupt(0x21, 0xa, args[1], 0, 0);
   return;
 }
 

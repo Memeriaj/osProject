@@ -6,7 +6,7 @@ int main(){
   makeInterrupt21();
   initializeProcessTable();
 
-  executeProgram("shell");
+  executeProgram("shell", NOONE);
   makeTimerInterrupt();
 
   while(1);
@@ -76,7 +76,7 @@ int div(int a, int b){
 
 
 
-void readFile(char* name, char* buffer){
+int readFile(char* name, char* buffer){
   char directory[SECTORSIZE];
   int entry, matched;
 
@@ -89,12 +89,12 @@ void readFile(char* name, char* buffer){
   }
   buffer[0] = '\0';
   if(matched == 0){
-    return;
+    return 0;
   }
 
   loadFileSectors(buffer, directory+entry*FILEENTRYLENGTH);
 
-  return;
+  return 1;
 }
 
 int matchNames(char* first, char* second, int length){
@@ -127,11 +127,16 @@ void loadFileSectors(char* buffer, char* dir){
 
 
 
-void executeProgram(char* name){
+void executeProgram(char* name, int toWaitOn){
   char buffer[MAXFILESIZE];
   int curLoadChar;
-  int q;
+  int q, found;
   int segment = 0;
+
+  found = readFile(name, buffer);
+  if(found != 1){
+    return;
+  }
 
   setKernelDataSegment();
   for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
@@ -147,23 +152,30 @@ void executeProgram(char* name){
     return;
   }
 
-  readFile(name, buffer);
   for(curLoadChar=0; curLoadChar<MAXFILESIZE; curLoadChar++){
     putInMemory(segment, curLoadChar, buffer[curLoadChar]);
   }
 
-  setKernelDataSegment();
-  processTable[q].active = 1;
-  restoreDataSegment();
-
   initializeProgram(segment);
+
+  setKernelDataSegment();
+  if(toWaitOn != NOONE){
+    processTable[toWaitOn].waitingOn = q;
+  }
+  processTable[q].active = 1;
+  processTable[q].stackPointer = INTITALSTACKLOCATION;
+  restoreDataSegment();
   return;
 }
 
 
 
 void terminate(){
-  killProcess(currentProcess);
+  int cur;
+  setKernelDataSegment();
+  cur = currentProcess;
+  restoreDataSegment();
+  killProcess(cur);
   while(1);
   return;
 }
@@ -279,6 +291,7 @@ void writeFile(char* filename, char* contents, int numSectors){
 
 
 void handleInterrupt21(int ax, int bx, int cx, int dx){
+  int cur;
   switch(ax){
     case 0x0: /*Print String*/
       printString(bx);
@@ -293,7 +306,7 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       readFile(bx, cx);
       break;
     case 0x4: /*Execute Program*/
-      executeProgram(bx);
+      executeProgram(bx, NOONE);
       break;
     case 0x5: /*Terminate Program*/
       terminate();
@@ -307,8 +320,14 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
     case 0x8: /*Write File*/
       writeFile(bx, cx, dx);
       break;
-    case 0x9:
+    case 0x9: /*Kill Process*/
       killProcess(bx);
+      break;
+    case 0xa: /*Execute Program in Blocking Fashion*/
+      setKernelDataSegment();
+      cur = currentProcess;
+      restoreDataSegment();
+      executeProgram(bx, cur);
       break;
     default:
       printString("Interrupt21 got undefined ax.");
@@ -323,16 +342,6 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
 void handleTimerInterrupt(int segment, int sp){
   int q;
   int nextProcess;
-  // char tic[9];
-  // tic[0] = 'T';
-  // tic[1] = 'i';
-  // tic[2] = 'c';
-  // tic[3] = ' ';
-  // tic[4] = '#';
-  // tic[5] = ' ';
-  // tic[6] = '#';
-  // tic[7] = '\r';
-  // tic[8] = '\n';
 
   if(segment == findProcessTableSegment(currentProcess)){
     processTable[currentProcess].stackPointer = sp;
@@ -344,7 +353,7 @@ void handleTimerInterrupt(int segment, int sp){
       nextProcess -= NUMBEROFPROCESSENTRIES;
     }
 
-    if(processTable[nextProcess].active == 1){
+    if(processTable[nextProcess].active == 1 && processTable[nextProcess].waitingOn == NOONE){
       break;
     }
     nextProcess++;
@@ -353,10 +362,6 @@ void handleTimerInterrupt(int segment, int sp){
   sp = processTable[nextProcess].stackPointer;
   segment = findProcessTableSegment(nextProcess);
   currentProcess = nextProcess;
-
-  // tic[4] = '0'+currentProcess;
-  // tic[6] = '0'+(segment / 0x1000);
-  // printString(tic);
 
   returnFromTimer(segment, sp);
 }
@@ -375,6 +380,7 @@ void initializeProcessTable(){
   for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
     processTable[q].active = 0;
     processTable[q].stackPointer = INTITALSTACKLOCATION;
+    processTable[q].waitingOn = NOONE;
   }
   currentProcess = 0;
   return;
@@ -383,9 +389,19 @@ void initializeProcessTable(){
 
 
 void killProcess(int id){
+  int q;
+
   setKernelDataSegment();
-  processTable[id].active = 0;
   processTable[id].stackPointer = INTITALSTACKLOCATION;
+  processTable[id].waitingOn = NOONE;
+
+  for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
+    if(processTable[q].waitingOn == id){
+      processTable[q].waitingOn = NOONE;
+    }
+  }
+
+  processTable[id].active = 0;
   restoreDataSegment();
   return;
 }
