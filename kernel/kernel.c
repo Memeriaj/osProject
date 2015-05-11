@@ -163,9 +163,7 @@ void executeProgram(char* name){
 
 
 void terminate(){
-  setKernelDataSegment();
-  processTable[currentProcess].active = 0;
-  processTable[currentProcess].stackPointer = INTITALSTACKLOCATION;
+  killProcess(currentProcess);
   while(1);
   return;
 }
@@ -309,6 +307,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
     case 0x8: /*Write File*/
       writeFile(bx, cx, dx);
       break;
+    case 0x9:
+      killProcess(bx);
+      break;
     default:
       printString("Interrupt21 got undefined ax.");
       break;
@@ -376,5 +377,15 @@ void initializeProcessTable(){
     processTable[q].stackPointer = INTITALSTACKLOCATION;
   }
   currentProcess = 0;
+  return;
+}
+
+
+
+void killProcess(int id){
+  setKernelDataSegment();
+  processTable[id].active = 0;
+  processTable[id].stackPointer = INTITALSTACKLOCATION;
+  restoreDataSegment();
   return;
 }

@@ -33,6 +33,8 @@ void matchCommand(char* line){
     dirCommand(args);
   }else if(match(args[0], "create\0")){
     createCommand(args);
+  }else if(match(args[0], "kill\0")){
+    killCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -209,5 +211,12 @@ void createCommand(char* args[]) {
   }
 
   interrupt(0x21, 0x8, args[1], buffer, neededSectors(charCount));
+  return;
+}
+
+
+
+void killCommand(char* args[]){
+  interrupt(0x21, 0x9, args[1][0] - '0', 0, 0);
   return;
 }

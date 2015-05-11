@@ -19,6 +19,7 @@ void deleteCommand(char* args[]);
 void copyCommand(char* args[]);
 void dirCommand(char* args[]);
 void createCommand(char* args[]);
+void killCommand(char* args[]);
 
 /*Helpers*/
 int neededSectors(int charactersToStore);

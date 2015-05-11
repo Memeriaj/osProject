@@ -33,6 +33,7 @@ void terminate();
 void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
 void writeFile(char* filename, char* contents, int numSectors);
+void killProcess(int id);
 
 /*Time intterupt functions*/
 void handleTimerInterrupt(int segment, int sp);
