@@ -4,6 +4,7 @@
 #define MAXLINELENGTH 256
 #define MAXARGSLENGTH 100
 #define MAXARGCHARS 100
+#define CONSOLEHEIGHT 25
 
 
 
@@ -21,6 +22,8 @@ void dirCommand(char* args[]);
 void createCommand(char* args[]);
 void killCommand(char* args[]);
 void executeForegroundCommand(char* args[]);
+void clearCommand(char* args[]);
+void quitCommand(char* argsp[]);
 
 /*Helpers*/
 int neededSectors(int charactersToStore);

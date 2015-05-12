@@ -35,6 +35,10 @@ void matchCommand(char* line){
     createCommand(args);
   }else if(match(args[0], "kill\0")){
     killCommand(args);
+  }else if(match(args[0], "clear\0")){
+    clearCommand(args);
+  }else if(match(args[0], "quit\0")){
+    quitCommand(args);
   }else if(match(args[0], "executeforeground\0")){
     executeForegroundCommand(args);
   }else{
@@ -230,4 +234,16 @@ void createCommand(char* args[]) {
 void killCommand(char* args[]){
   interrupt(0x21, 0x9, args[1][0] - '0', 0, 0);
   return;
+}
+
+void clearCommand(char* args[]){
+  int i = 0;
+  while (i < CONSOLEHEIGHT){
+    interrupt(0x21, 0x0, "\n", 0, 0);
+    i++;
+  }   
+}
+
+void quitCommand(char* args[]){
+  interrupt(0x21, 0x5, 0, 0, 0);
 }
