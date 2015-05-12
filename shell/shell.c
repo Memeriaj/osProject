@@ -37,6 +37,8 @@ void matchCommand(char* line){
     killCommand(args);
   }else if(match(args[0], "executeforeground\0")){
     executeForegroundCommand(args);
+  }else if(match(args[0], "edit\0")){
+    editCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -59,17 +61,27 @@ int match(char* line, char* command){
 void breakApartArgs(char* args[], char* line){
   int q;
   int curArg = 0;
-  int pos = 0;
 
   args[curArg] = line;
   for(q=0; line[q] != '\0'; q++){
     if(line[q] == ' '){
       curArg++;
-      pos = 0;
       line[q] = '\0';
       args[curArg] = line+q+1;
     }
+    if(line[q] == '\r'){
+      curArg++;
+      line[q] = '\0';
+      break;
+    }
   }
+  return;
+}
+
+
+
+void editCommand(char* args[]){
+
   return;
 }
 

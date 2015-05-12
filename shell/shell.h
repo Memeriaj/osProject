@@ -13,6 +13,7 @@ int match(char* line, char* command);
 void breakApartArgs(char* args[], char* line);
 
 /*Shell commands*/
+void editCommand(char* args[]);
 void typeCommand(char* args[]);
 void executeCommand(char* args[]);
 void deleteCommand(char* args[]);
