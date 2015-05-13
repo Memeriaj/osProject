@@ -36,7 +36,9 @@ that it lists with valid parameters as it instructs.
 * Backspace printing space
 	By default, a backspace character will only move the cursor back and not change the character displayed on the screen at the location of the cursor. However, we have changed this to print a space at the previous location of the cursor, which makes the backspace key actually delete the character on the screen as well as in the buffer.
 * help
-	The "help" command shows a list of all of the other commands, what each of their purposes is, and calling procedures and parameters of each command. 
+	The "help" command shows a list of all of the other commands, what each of their purposes is, and calling procedures and parameters of each command.
+* edit
+	The "edit" command allows for the editing of an existing file. It uses the same line-by-line interface that "create" does, which uses <enter> to move to the next line and eventually exit the file.
 
 ## Notes
 Please note that the excuteProgram method in kernel.c still takes two
