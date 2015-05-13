@@ -5,7 +5,8 @@ LOADFILES =	shell \
 						message.txt \
 						tstprg \
 						tstpr2 \
-						phello
+						phello \
+						loop
 REQLOADFILES = $(LOADFILES:%=$(FLOPPYDIR)%)
 
 REQDDS =	$(FLOPPYDIR)bootload \

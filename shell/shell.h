@@ -24,7 +24,9 @@ void createCommand(char* args[]);
 void killCommand(char* args[]);
 void executeForegroundCommand(char* args[]);
 void clearCommand(char* args[]);
-void quitCommand(char* argsp[]);
+void quitCommand(char* args[]);
+void listProcessCommand(char* args[]);
+void helpCommand(char* args[]);
 
 /*Helpers*/
 int neededSectors(int charactersToStore);

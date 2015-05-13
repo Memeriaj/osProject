@@ -3,3 +3,4 @@ kernel
 loadFile
 shell
 floppya.img
+loop

@@ -35,6 +35,7 @@ void writeSector(char* toWrite, int sectorNum);
 void deleteFile(char* name);
 void writeFile(char* filename, char* contents, int numSectors);
 void killProcess(int id);
+void listProcesses();
 
 /*Time intterupt functions*/
 void handleTimerInterrupt(int segment, int sp);
@@ -51,6 +52,7 @@ typedef struct processEntry{
   int active;
   int stackPointer;
   int waitingOn;
+  char name[NAMELENGTH+1];
 } ProcessEntry;
 ProcessEntry processTable[NUMBEROFPROCESSENTRIES];
 
