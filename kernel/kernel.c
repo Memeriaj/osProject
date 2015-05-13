@@ -130,7 +130,7 @@ void loadFileSectors(char* buffer, char* dir){
 void executeProgram(char* name, int toWaitOn){
   char buffer[MAXFILESIZE];
   int curLoadChar;
-  int q, found;
+  int q, found, process, charTemp;
   int segment = 0;
 
   found = readFile(name, buffer);
@@ -146,6 +146,7 @@ void executeProgram(char* name, int toWaitOn){
     }
   }
   restoreDataSegment();
+  process = q;
 
   if(segment == 0){
     printString("Too many processes");
@@ -158,12 +159,20 @@ void executeProgram(char* name, int toWaitOn){
 
   initializeProgram(segment);
 
-  setKernelDataSegment();
-  if(toWaitOn != NOONE){
-    processTable[toWaitOn].waitingOn = q;
+  for(q=0; q<NAMELENGTH; q++){
+    charTemp = name[q];
+    setKernelDataSegment();
+    processTable[process].name[q] = charTemp;
+    restoreDataSegment();
   }
-  processTable[q].active = 1;
-  processTable[q].stackPointer = INTITALSTACKLOCATION;
+  setKernelDataSegment();
+  processTable[process].name[q] = '\0';
+
+  if(toWaitOn != NOONE){
+    processTable[toWaitOn].waitingOn = process;
+  }
+  processTable[process].active = 1;
+  processTable[process].stackPointer = INTITALSTACKLOCATION;
   restoreDataSegment();
   return;
 }
@@ -329,6 +338,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       restoreDataSegment();
       executeProgram(bx, cur);
       break;
+    case 0xb:
+      listProcesses();
+      break;
     default:
       printString("Interrupt21 got undefined ax.");
       break;
@@ -403,5 +415,46 @@ void killProcess(int id){
 
   processTable[id].active = 0;
   restoreDataSegment();
+  return;
+}
+
+
+void listProcesses(){
+  int q;
+  char mess[20];
+  char proc[5];
+  proc[0] = ' ';
+  proc[1] = '#';
+  proc[2] = '\r';
+  proc[3] = '\n';
+  proc[4] = '\0';
+  mess[0] = 'P';
+  mess[1] = 'r';
+  mess[2] = 'o';
+  mess[3] = 'c';
+  mess[4] = 'e';
+  mess[5] = 's';
+  mess[6] = 's';
+  mess[7] = 'e';
+  mess[8] = 's';
+  mess[9] = ':';
+  mess[10] = '\r';
+  mess[11] = '\n';
+  mess[12] = '\0';
+  printString(mess);
+
+  setKernelDataSegment();  
+  for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
+    if(processTable[q].active == 1){
+      printString(processTable[q].name);
+
+      restoreDataSegment();
+      proc[1] = '0'+q;
+      printString(proc);
+      setKernelDataSegment();  
+    }
+  }
+  restoreDataSegment();
+
   return;
 }

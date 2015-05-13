@@ -3,8 +3,12 @@ KERNELDIR = kernel/
 FLOPPYDIR = $(KERNELDIR)floppy/
 SHELLDIR = shell/
 
+TOCOPY = $(SHELLDIR)shell \
+						$(SHELLDIR)loop
+COPYLOC = $(TOCOPY:$(SHELLDIR)%=$(FLOPPYDIR)%)
+COPYLIB = $(TOCOPY:%=%_asm.o)
 LINKEXEC =	$(KERNELDIR)kernel \
-						$(SHELLDIR)shell
+						$(TOCOPY)
 LINKOBJ = $(LINKEXEC:%=%.o)
 LINKASM = $(LINKEXEC:%=%_asm.o)
 
@@ -16,14 +20,14 @@ main : bochsTest
 include $(KERNELDIR)makefile
 
 
-$(FLOPPYDIR)shell : $(SHELLDIR)shell
+$(COPYLOC) : $(FLOPPYDIR)% : $(SHELLDIR)%
 	cp $< $@
 
 $(LINKEXEC) : % : %.o %_asm.o %.h definitions.h
 	ld86 -o $@ -d $*.o $*_asm.o
 
 $(KERNELDIR)kernel_asm.o : $(KERNELDIR)kernel.asm
-$(SHELLDIR)shell_asm.o : $(SHELLDIR)lib.asm
+$(COPYLIB) : $(SHELLDIR)lib.asm
 $(LINKASM) :
 	as86 $< -o $@
 

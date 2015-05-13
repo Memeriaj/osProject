@@ -43,6 +43,8 @@ void matchCommand(char* line){
     executeForegroundCommand(args);
   }else if(match(args[0], "edit\0")){
     editCommand(args);
+  }else if(match(args[0], "top\0")){
+    listProcessCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -258,4 +260,9 @@ void clearCommand(char* args[]){
 
 void quitCommand(char* args[]){
   interrupt(0x21, 0x5, 0, 0, 0);
+}
+
+void listProcessCommand(char* args[]){
+  interrupt(0x21, 0xb, 0, 0, 0);
+  return;
 }
