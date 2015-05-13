@@ -265,7 +265,7 @@ void editCommand(char* args[]){
     line[linecount] = '\0';
     oldbuffcount += 2;
 
-    interrupt(0x21, 0xb, line, 0, 0);
+    interrupt(0x21, 0xc, line, 0, 0);
 
     if(line[0] == '\r'){
       newBuffer[buffcount] = '\0';
@@ -320,7 +320,7 @@ void helpCommand(char* args[]){
   commands[7] = "quit - exit the shell\r\n\0";
   commands[8] = "executeforeground arg1 - execute the program of name arg1 in the foreground, blocking all other processes from running in the meantime\r\n\0";
   commands[9] = "edit arg1 - edit the file of name arg1. Upon editing, each line of the file will appear and be editable in the console. Press enter to go to the next line, or exit the file if on the last line.\r\n\0";
-  commands[10] = "top - display the list of top-level processes with names and their process ids\r\n\0"; 
+  commands[10] = "top - display the list of top-level processes with names and their process ids\r\n\0";
   commands[11] = "help - display this help menu\r\n\0";
   for (count = 0; count < 12; count++) {
     interrupt(0x21, 0x0, commands[count], 0, 0);

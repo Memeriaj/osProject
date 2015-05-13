@@ -369,11 +369,10 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       executeProgram(bx, cur);
       break;
     case 0xb:
-<<<<<<< HEAD
-      editString(bx);
-=======
       listProcesses();
->>>>>>> 263ba4afa650e2c6f0913c9d269a447932e38cd0
+      break;
+    case 0xc:
+      editString(bx);
       break;
     default:
       printString("Interrupt21 got undefined ax.");
@@ -477,7 +476,7 @@ void listProcesses(){
   mess[12] = '\0';
   printString(mess);
 
-  setKernelDataSegment();  
+  setKernelDataSegment();
   for(q=0; q<NUMBEROFPROCESSENTRIES; q++){
     if(processTable[q].active == 1){
       printString(processTable[q].name);
@@ -485,7 +484,7 @@ void listProcesses(){
       restoreDataSegment();
       proc[1] = '0'+q;
       printString(proc);
-      setKernelDataSegment();  
+      setKernelDataSegment();
     }
   }
   restoreDataSegment();
