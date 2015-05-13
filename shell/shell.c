@@ -45,6 +45,8 @@ void matchCommand(char* line){
     editCommand(args);
   }else if(match(args[0], "top\0")){
     listProcessCommand(args);
+  }else if(match(args[0], "help\0")){
+    helpCommand(args);
   }else{
     interrupt(0x21, 0, "Bad Command!\r\n", 0, 0);
   }
@@ -264,5 +266,26 @@ void quitCommand(char* args[]){
 
 void listProcessCommand(char* args[]){
   interrupt(0x21, 0xb, 0, 0, 0);
+  return;
+}
+
+void helpCommand(char* args[]){
+  char* commands[12];
+  int count;
+  commands[0] = "execute arg1 - execute the program of name specified in arg1\r\n\0";
+  commands[1] = "delete arg1 - delete the file of name specified in arg1\r\n\0";
+  commands[2] = "copy arg1 arg2 - copy the file of name arg1 to a new file named arg2\r\n\0";
+  commands[3] = "dir - display the names and sizes (# sectors) of all files in the system\r\n\0";
+  commands[4] = "create arg1 - create a new file of name arg1 and begin filling its contents. Type text and press enter to start a new line, and press enter on an empty line to finish.\r\n\0";
+  commands[5] = "kill arg1 - kill the process of id arg1. The shell has a process id of 0.\r\n\0";
+  commands[6] = "clear - clear the terminal window of all previously printed text\r\n\0";
+  commands[7] = "quit - exit the shell\r\n\0";
+  commands[8] = "executeforeground arg1 - execute the program of name arg1 in the foreground, blocking all other processes from running in the meantime\r\n\0";
+  commands[9] = "edit arg1 - edit the file of name arg1. Upon editing, each line of the file will appear and be editable in the console. Press enter to go to the next line, or exit the file if on the last line.\r\n\0";
+  commands[10] = "top - display the list of top-level processes with names and their process ids\r\n\0"; 
+  commands[11] = "help - display this help menu\r\n\0";
+  for (count = 0; count < 12; count++) {
+    interrupt(0x21, 0x0, commands[count], 0, 0);
+  }
   return;
 }
