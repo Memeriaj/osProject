@@ -84,13 +84,6 @@ void breakApartArgs(char* args[], char* line){
 
 
 
-void editCommand(char* args[]){
-
-  return;
-}
-
-
-
 void typeCommand(char* args[]){
   char buffer[MAXFILESIZE];
   interrupt(0x21, 0x3, args[1], buffer, 0);
@@ -242,6 +235,51 @@ void createCommand(char* args[]) {
 }
 
 
+void editCommand(char* args[]){
+  char buffer[MAXFILESIZE];
+  char newBuffer[MAXFILESIZE];
+  char line[MAXLINELENGTH];
+  int buffcount;
+  int oldbuffcount;
+  int linecount;
+  int flag;
+  flag = 0;
+  interrupt(0x21, 0x3, args[1], buffer, 0);
+  buffcount = 0;
+  oldbuffcount = 0;
+  while (1){
+    linecount = 0;
+    while(!(flag) && buffer[oldbuffcount] != '\r') {
+      if (buffer[oldbuffcount] == '\0') {
+        flag = 1;
+        break;
+      }
+      line[linecount] = buffer[oldbuffcount];
+      linecount++;
+      oldbuffcount++;
+    }
+    line[linecount] = '\0';
+    oldbuffcount += 2;
+
+    interrupt(0x21, 0xb, line, 0, 0);
+
+    if(line[0] == '\r'){
+      newBuffer[buffcount] = '\0';
+      buffcount++;
+      break;
+    }
+    linecount=0;
+    while(line[linecount] != '\0'){
+      newBuffer[buffcount] = line[linecount];
+      linecount++;
+      buffcount++;
+    }
+  }
+  interrupt(0x21, 0x7, args[1], 0, 0);
+  interrupt(0x21, 0x8, args[1], newBuffer, neededSectors(buffcount));
+  return;
+}
+
 
 void killCommand(char* args[]){
   interrupt(0x21, 0x9, args[1][0] - '0', 0, 0);
@@ -253,7 +291,7 @@ void clearCommand(char* args[]){
   while (i < CONSOLEHEIGHT){
     interrupt(0x21, 0x0, "\n", 0, 0);
     i++;
-  }   
+  }
 }
 
 void quitCommand(char* args[]){

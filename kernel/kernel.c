@@ -14,7 +14,6 @@ int main(){
 }
 
 
-
 void printString(char* message){
   char* current = message;
   while(*current != '\0'){
@@ -52,7 +51,38 @@ void readString(char* store){
   return;
 }
 
+void editString(char* store){
+  int cur = 0;
+  while(store[cur] != '\0') {
+    interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
+    cur++;
+  }
 
+  store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
+  while(store[cur] != ENTERCODE){
+    if(store[cur] == BACKSPACECODE && cur > 0){
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+' ', 0, 0, 0);
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+store[cur], 0, 0, 0);
+      cur -= 1;
+    } else if (store[cur] != BACKSPACECODE){
+      interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+*(store+cur), 0, 0, 0);
+      cur++;
+    }
+
+    store[cur] = interrupt(READCHARINTERRUPT, 0, 0, 0, 0);
+  }
+  interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+'\r', 0, 0, 0);
+  interrupt(PRINTLETTERINTERTUPT, LETTEROFFSET+'\n', 0, 0, 0);
+
+  *(store+cur) = '\r';
+  cur++;
+  *(store+cur) = '\n';
+  cur++;
+  *(store+cur) = '\0';
+
+  return;
+}
 
 void readSector(char* buffer, int sector){
   readWriteSector(buffer, sector, READSECTORINDICATOR);
@@ -328,6 +358,9 @@ void handleInterrupt21(int ax, int bx, int cx, int dx){
       cur = currentProcess;
       restoreDataSegment();
       executeProgram(bx, cur);
+      break;
+    case 0xb:
+      editString(bx);
       break;
     default:
       printString("Interrupt21 got undefined ax.");
